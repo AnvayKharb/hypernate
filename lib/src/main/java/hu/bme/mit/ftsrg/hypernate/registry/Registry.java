@@ -191,6 +191,57 @@ public class Registry {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Check if an entity exists.
+   *
+   * @param clazz the class of the entity
+   * @param keyParts the list of primary keys identifying the entity
+   * @return {@code true} if the entity exists in the ledger, {@code false} otherwise
+   * @param <T> the entity type
+   * @throws MissingPrimaryKeysException if the class has no primary keys
+   * @throws IllegalArgumentException if the key parts count is invalid for the entity type
+   */
+  @Loggable(Loggable.DEBUG)
+  public <T> boolean exists(Class<T> clazz, Object... keyParts) {
+    return keyExists(resolveKey(clazz, keyParts));
+  }
+
+  /**
+   * Ensure that an entity exists.
+   *
+   * @param clazz the class of the entity
+   * @param keyParts the list of primary keys identifying the entity
+   * @param <T> the entity type
+   * @throws EntityNotFoundException if the entity does not exist in the ledger
+   * @throws MissingPrimaryKeysException if the class has no primary keys
+   * @throws IllegalArgumentException if the key parts count is invalid for the entity type
+   */
+  @Loggable(Loggable.DEBUG)
+  public <T> void mustExist(Class<T> clazz, Object... keyParts) throws EntityNotFoundException {
+    final String key = resolveKey(clazz, keyParts);
+    if (!keyExists(key)) {
+      throw new EntityNotFoundException(key);
+    }
+  }
+
+  /**
+   * Ensure that an entity does not exist.
+   *
+   * @param clazz the class of the entity
+   * @param keyParts the list of primary keys identifying the entity
+   * @param <T> the entity type
+   * @throws EntityExistsException if the entity already exists in the ledger
+   * @throws MissingPrimaryKeysException if the class has no primary keys
+   * @throws IllegalArgumentException if the key parts count is invalid for the entity type
+   */
+  @Loggable(Loggable.DEBUG)
+  public <T> void mustNotExist(Class<T> clazz, Object... keyParts) throws EntityExistsException {
+    final String key = resolveKey(clazz, keyParts);
+    if (keyExists(key)) {
+      throw new EntityExistsException(key);
+    }
+  }
+
   @Loggable(Loggable.DEBUG)
   private boolean keyExists(final String key) {
     final byte[] valueOnLedger = stub.getState(key);
