@@ -139,22 +139,7 @@ public class Registry {
    * @throws EntityNotFoundException if an entity with the given primary keys was not found
    */
   public <T> T mustRead(Class<T> clazz, Object... keyParts) throws EntityNotFoundException {
-    int primaryKeyCount = EntityUtil.getPrimaryKeyCount(clazz);
-    if (primaryKeyCount == 0) {
-      throw new MissingPrimaryKeysException(
-          String.format("%s does not have a primary key annotation", clazz));
-    }
-
-    if (keyParts.length != primaryKeyCount) {
-      throw new IllegalArgumentException(
-          "The number of key parts provided does not match number of primary keys for "
-              + clazz.getName());
-    }
-
-    final String key =
-        stub.createCompositeKey(
-                EntityUtil.getType(clazz), EntityUtil.mapKeyPartsToString(clazz, keyParts))
-            .toString();
+    final String key = resolveKey(clazz, keyParts);
     final byte[] data = stub.getState(key);
 
     if (data == null || data.length == 0) {
@@ -233,6 +218,24 @@ public class Registry {
 
   private <T> String getCompositeKey(final T ent) {
     return stub.createCompositeKey(EntityUtil.getType(ent), EntityUtil.getPrimaryKeys(ent))
+        .toString();
+  }
+
+  private <T> String resolveKey(Class<T> clazz, Object... keyParts) {
+    int primaryKeyCount = EntityUtil.getPrimaryKeyCount(clazz);
+    if (primaryKeyCount == 0) {
+      throw new MissingPrimaryKeysException(
+          String.format("%s does not have a primary key annotation", clazz));
+    }
+
+    if (keyParts.length != primaryKeyCount) {
+      throw new IllegalArgumentException(
+          "The number of key parts provided does not match number of primary keys for "
+              + clazz.getName());
+    }
+
+    return stub.createCompositeKey(
+            EntityUtil.getType(clazz), EntityUtil.mapKeyPartsToString(clazz, keyParts))
         .toString();
   }
 
