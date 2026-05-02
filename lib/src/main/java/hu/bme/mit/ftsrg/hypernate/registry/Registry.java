@@ -4,6 +4,10 @@ package hu.bme.mit.ftsrg.hypernate.registry;
 import com.jcabi.aspects.Loggable;
 import hu.bme.mit.ftsrg.hypernate.annotations.AttributeInfo;
 import hu.bme.mit.ftsrg.hypernate.annotations.PrimaryKey;
+import hu.bme.mit.ftsrg.hypernate.query.RangeQueryBuilder;
+import hu.bme.mit.ftsrg.hypernate.query.RangeQueryBuilderImpl;
+import hu.bme.mit.ftsrg.hypernate.query.RichQueryBuilder;
+import hu.bme.mit.ftsrg.hypernate.query.RichQueryBuilderImpl;
 import hu.bme.mit.ftsrg.hypernate.util.JSON;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -189,6 +193,28 @@ public class Registry {
               return EntityUtil.fromBuffer(value, clazz);
             })
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Create a fluent builder for CouchDB rich queries.
+   *
+   * @param entityClass the entity type to query
+   * @return a rich-query builder for the provided entity type
+   * @param <T> the entity type
+   */
+  public <T> RichQueryBuilder<T> richQuery(final Class<T> entityClass) {
+    return new RichQueryBuilderImpl<>(stub, entityClass);
+  }
+
+  /**
+   * Create a fluent builder for composite-key range queries.
+   *
+   * @param entityClass the entity type to query
+   * @return a range-query builder for the provided entity type
+   * @param <T> the entity type
+   */
+  public <T> RangeQueryBuilder<T> rangeQuery(final Class<T> entityClass) {
+    return new RangeQueryBuilderImpl<>(stub, entityClass);
   }
 
   /**
